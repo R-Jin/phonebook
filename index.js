@@ -1,9 +1,18 @@
 const express = require('express')
+const cors = require('cors')
 const app = express()
 var morgan = require('morgan')
 
+// Create morgan token
+morgan.token('data', function (req, res) {
+    return JSON.stringify(req.body)
+})
+
+app.use(express.static('build'))
+app.use(cors())
 app.use(express.json())
 app.use(morgan('tiny'))
+
 
 let persons = [
     { 
@@ -65,29 +74,31 @@ const generateId = () => {
     return id
 }
 
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 app.post('/api/persons', (request, response) => {
-    const person = request.body
+    const newPerson = request.body
 
-    if (!person.name || !person.number) {
+    if (!newPerson.name || !newPerson.number) {
         response.status(400).json({
             error: "Name or number is missing from the request"
         })
     }
 
-    if (persons.some(person => person.name === person.name)) {
+    if (persons.some(person => person.name === newPerson.name)) {
         response.status(400).json({
             error: "Name must be unique"
         })
     }
 
-    person.id = generateId() 
+    newPerson.id = generateId() 
 
-    persons = persons.concat(person)
+    persons = persons.concat(newPerson)
 
-    response.json(person)
+    response.json(newPerson)
 })
 
-const PORT = 3001
+
+const PORT = process.env.PORT || 3001
 
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
