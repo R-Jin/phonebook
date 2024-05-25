@@ -1,4 +1,8 @@
 const express = require('express')
+const morgan = require('morgan')
+morgan.token('body', (request) => {
+    return JSON.stringify(request.body)
+})
 const app = express()
 
 let persons = [
@@ -25,6 +29,7 @@ let persons = [
 ]
 
 app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 
 // Get info about phonebook
@@ -55,6 +60,39 @@ app.delete("/api/persons/:id", (request, response) => {
     persons = persons.filter(person => person.id !== id) 
     response.status(204).end()
 })
+
+const getNewId = () => {
+    const maxId = persons.length > 0
+        ? Math.max(...persons.map(person => person.id))
+        : 0
+
+    return maxId + 1
+}
+
+// Add new person to phonebook
+app.post("/api/persons", (request, response) => {
+    const newPerson = request.body
+
+    if (!newPerson.name) {
+        response.status(400).json({error: "name is missing"})
+    } else if (!newPerson.number) {
+        response.status(400).json({error: "number is missing"})
+    } else {
+        if (persons.some(person => person.name.toLowerCase() === newPerson.name.toLowerCase())) {
+            response.status(400).json({error: "name must be unique"})
+        } else {
+            persons = persons.concat(
+                {
+                    id: getNewId(),
+                    name: newPerson.name,
+                    number: newPerson.number,
+                }
+            )
+            response.json(persons)
+        }
+    }
+})
+
 
 const PORT = 3001
 app.listen(PORT, () => {
