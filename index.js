@@ -1,6 +1,22 @@
+require("dotenv").config();
+const mongoose = require("mongoose");
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const Person = require("./models/person");
+
+const url = process.env.MONGODB_URI;
+
+console.log(`Connecting to ${url}`);
+
+mongoose
+  .connect(url)
+  .then((_result) => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log(`Error connecting to MongoDB: ${error.message}`);
+  });
 
 morgan.token("body", (request) => {
   return JSON.stringify(request.body);
@@ -46,7 +62,9 @@ app.get("/info", (_request, response) => {
 
 // Get all persons in phonebook
 app.get("/api/persons", (_request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 // Get a person in phonebook
@@ -101,7 +119,7 @@ app.post("/api/persons", (request, response) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
