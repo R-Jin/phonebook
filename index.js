@@ -109,12 +109,13 @@ app.post("/api/persons", (request, response) => {
     ) {
       response.status(400).json({ error: "name must be unique" });
     } else {
-      persons = persons.concat({
-        id: getNewId(),
+      const newPersonInstance = new Person({
         name: newPerson.name,
         number: newPerson.number,
       });
-      response.json(persons);
+      newPersonInstance.save().then((newPerson) => {
+        response.json(newPerson);
+      });
     }
   }
 });
