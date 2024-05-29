@@ -86,13 +86,6 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end();
 });
 
-const getNewId = () => {
-  const maxId =
-    persons.length > 0 ? Math.max(...persons.map((person) => person.id)) : 0;
-
-  return maxId + 1;
-};
-
 // Add new person to phonebook
 app.post("/api/persons", (request, response) => {
   const newPerson = request.body;
