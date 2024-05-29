@@ -78,32 +78,19 @@ app.delete("/api/persons/:id", (request, response, next) => {
 
 // Add new person to phonebook
 app.post("/api/persons", (request, response, next) => {
-  const newPerson = request.body;
+  const body = request.body;
 
-  if (!newPerson.name) {
-    response.status(400).json({ error: "name is missing" });
-  } else if (!newPerson.number) {
-    response.status(400).json({ error: "number is missing" });
-  } else {
-    if (
-      persons.some(
-        (person) => person.name.toLowerCase() === newPerson.name.toLowerCase(),
-      )
-    ) {
-      response.status(400).json({ error: "name must be unique" });
-    } else {
-      const newPersonInstance = new Person({
-        name: newPerson.name,
-        number: newPerson.number,
-      });
-      newPersonInstance
-        .save()
-        .then((newPerson) => {
-          response.json(newPerson);
-        })
-        .catch((error) => next(error));
-    }
-  }
+  const newPersonInstance = new Person({
+    name: body.name,
+    number: body.number,
+  });
+
+  newPersonInstance
+    .save()
+    .then((newPerson) => {
+      response.json(newPerson);
+    })
+    .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", (request, response, next) => {
@@ -133,6 +120,8 @@ const errorHandler = (error, _request, response, next) => {
   if (error.name === "CastError") {
     // Format of id in request is wrong
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(404).json({ error: error.message });
   }
   next(error);
 };
